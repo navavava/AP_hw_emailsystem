@@ -10,7 +10,7 @@ import java.util.Scanner;
 
 public class UserService {
 
-    public static User persist(String firstName, int age, String lastName, String email, String password) {
+    public static User persist(String firstName, String lastName, int age, String email, String password) {
         User u = new User(firstName, lastName, age, email, password);
         SingletonSessionFactory.get()
                 .inTransaction(session -> {
@@ -30,7 +30,8 @@ public class UserService {
         try {
             User user = SingletonSessionFactory.get()
                     .fromTransaction(session ->
-                            session.createNativeQuery("select * from users" + "where username = :given email", User.class)
+                            session.createNativeQuery("select * from users" +
+                                            " where username = :given_email", User.class)
                                     .setParameter("given_email", email)
                                     .getSingleResultOrNull());
 
@@ -71,20 +72,16 @@ public class UserService {
         try {
             User user = SingletonSessionFactory.get()
                     .fromTransaction(session ->
-                            session.createNativeQuery("select * from users" + "where username = :given email", User.class)
+                            session.createNativeQuery("select * from users" +
+                                            " where username = :given_email", User.class)
                                     .setParameter("given_email", email)
                                     .getSingleResultOrNull());
             if (user != null) {
                 System.out.println("Error: an account with this email already exists!");
                 return;
             }
-            String finalPassword = password;
-            SingletonSessionFactory.get()
-                    .fromTransaction(session -> {
-                        User newUser = new User(firstName, lastName, age, email, finalPassword);
-                        session.persist(newUser);
-                        return null;
-                    });
+            persist(firstName, lastName, age, email, password);
+            System.out.println("Registered successfully!");
         } catch (Exception e) {
             System.out.println("Error during sign up: " + e.getMessage());
         }
