@@ -18,9 +18,6 @@ public class User {
     private String lastName;
 
     @Basic(optional = false)
-    private int age;
-
-    @Basic(optional = false)
     @Column(name = "username", unique = true)
     private String email;
 
@@ -29,12 +26,11 @@ public class User {
 
     public User(){}
 
-    public User(String firstName, String lastName,int age, String email, String password) {
+    public User(String firstName, String lastName, String email, String password) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
         this.password = password;
-        this.age = age;
     }
 
     public Integer getId() {
@@ -55,14 +51,6 @@ public class User {
 
     public void setLastName(String lastName) {
         this.lastName = lastName;
-    }
-
-    public int getAge() {
-        return age;
-    }
-
-    public void setAge(int age) {
-        this.age = age;
     }
 
     public String getEmail() {

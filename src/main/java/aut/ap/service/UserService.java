@@ -10,8 +10,8 @@ import java.util.Scanner;
 
 public class UserService {
 
-    public static User persist(String firstName, String lastName, int age, String email, String password) {
-        User u = new User(firstName, lastName, age, email, password);
+    public static User persist(String firstName, String lastName, String email, String password) {
+        User u = new User(firstName, lastName, email, password);
         SingletonSessionFactory.get()
                 .inTransaction(session -> {
                     session.persist(u);
@@ -38,7 +38,7 @@ public class UserService {
             if (user == null || !user.getPassword().equals(password)) {
                 System.out.println("Error: Invalid credentials!");
             } else {
-                System.out.println("\nWelcome, " + user.getFirstName() + " " + user.getLastName() + "!");
+                System.out.println("\nWelcome back, " + user.getFirstName() + " " + user.getLastName() + "!");
             }
         } catch (Exception e) {
             System.out.println("Error during login: " + e.getMessage());
@@ -48,14 +48,11 @@ public class UserService {
     public static void signup(Scanner scn) {
         System.out.println("\n--- Sign Up ---");
 
-        System.out.print("First Name: ");
-        String firstName = scn.nextLine();
+        System.out.print("Full name: ");
+        String fullName = scn.nextLine();
 
-        System.out.print("Last Name: ");
-        String lastName = scn.nextLine();
-
-        System.out.print("Age: ");
-        int age = Integer.parseInt(scn.nextLine());
+        String firstName = fullName.split(" ")[0];
+        String lastName = fullName.split(" ")[1];
 
         System.out.print("Email: ");
         String email = scn.nextLine();
@@ -80,7 +77,7 @@ public class UserService {
                 System.out.println("Error: an account with this email already exists!");
                 return;
             }
-            persist(firstName, lastName, age, email, password);
+            persist(firstName, lastName, email, password);
             System.out.println("Registered successfully!");
         } catch (Exception e) {
             System.out.println("Error during sign up: " + e.getMessage());

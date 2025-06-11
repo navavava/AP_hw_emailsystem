@@ -9,7 +9,7 @@
             com.mysql.cj.jdbc.Driver
         </property>
         <property name="hibernate.connection.url">
-            jdbc:mysql://localhost:3306/week14hw_db
+            jdbc:mysql://localhost:3306/byebye
         </property>
         <property name="hibernate.connection.username">
             root
@@ -23,5 +23,7 @@
         <property name="hibernate.highlight_sql">true</property>
         <!-- Mappings -->
         <mapping class="aut.ap.model.User"/>
+        <mapping class="aut.ap.model.Email"/>
+        <mapping class="aut.ap.model.UserEmails"/>
     </session-factory>
 </hibernate-configuration>
