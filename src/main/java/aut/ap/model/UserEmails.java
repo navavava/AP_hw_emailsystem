@@ -10,15 +10,40 @@ public class UserEmails {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Basic(optional = false)
-    @Column(name = "email_id")
-    private Integer emailId;
+    @JoinColumn(name = "email_id")
+    @OneToMany
+    private Email email;
 
-    @Basic(optional = false)
-    @Column(name = "user_id")
-    private Integer userId;
+    @JoinColumn(name = "user_id")
+    @OneToMany
+    private User receiver;
 
-    @Basic(optional = false)
-    private String SorR;
+    public UserEmails() {
+    }
+
+    public UserEmails(Email email, User receiver) {
+        this.email = email;
+        this.receiver = receiver;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public Email getEmail() {
+        return email;
+    }
+
+    public void setEmail(Email email) {
+        this.email = email;
+    }
+
+    public User getReceiver() {
+        return receiver;
+    }
+
+    public void setReceiver(User receiver) {
+        this.receiver = receiver;
+    }
 
 }

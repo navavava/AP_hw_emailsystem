@@ -16,34 +16,31 @@ public class Email {
     @Column(unique = true)
     private String code;
 
-//    @Basic(optional = false)
-//    @Column(name = "user_id")
-//    private Integer userId;
-
     @Basic(optional = false)
     private String subject;
 
     @Basic(optional = false)
     private String body;
 
-    @Column(name = "parent_id")
-    private Integer parentId;
+    @JoinColumn(name = "parent_id")
+    @ManyToOne
+    private Email parentEmail;
 
     @Basic(optional = false)
     private LocalDate date;
 
-    @Basic(optional = false)
+    @JoinColumn(name = "user_id")
+    @ManyToOne(optional = false)
     private User sender;
 
     public Email() {
     }
 
-    public Email(User sender, String code, String subject, String body, Integer parentId, LocalDate date) {
+    public Email(User sender, String code, String subject, String body, LocalDate date) {
         this.sender = sender;
         this.code = code;
         this.subject = subject;
         this.body = body;
-        this.parentId = parentId;
         this.date = date;
     }
 
@@ -83,14 +80,6 @@ public class Email {
 
     public void setBody(String body) {
         this.body = body;
-    }
-
-    public Integer getParentId() {
-        return parentId;
-    }
-
-    public void setParentId(Integer parentId) {
-        this.parentId = parentId;
     }
 
     public LocalDate getDate() {

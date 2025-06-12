@@ -23,6 +23,7 @@ public class UserService {
         System.out.println("\n--- Login ---");
         System.out.print("Email: ");
         String email = scn.nextLine();
+        EmailService.standardizeUsername(email);
 
         System.out.print("Password: ");
         String password = scn.nextLine();
@@ -31,14 +32,15 @@ public class UserService {
             User user = SingletonSessionFactory.get()
                     .fromTransaction(session ->
                             session.createNativeQuery("select * from users" +
-                                            " where username = :given_email", User.class)
-                                    .setParameter("given_email", email)
+                                            " where username = :email", User.class)
+                                    .setParameter("email", email)
                                     .getSingleResultOrNull());
 
             if (user == null || !user.getPassword().equals(password)) {
-                System.out.println("Error: Invalid credentials!");
+                System.out.println("Error: Invalid credentials! Try again please.");
             } else {
                 System.out.println("\nWelcome back, " + user.getFirstName() + " " + user.getLastName() + "!");
+                //TODO:view unread emails method and send,view,reply,forward
             }
         } catch (Exception e) {
             System.out.println("Error during login: " + e.getMessage());
@@ -56,6 +58,7 @@ public class UserService {
 
         System.out.print("Email: ");
         String email = scn.nextLine();
+        EmailService.standardizeUsername(email);
 
         System.out.print("Password: ");
         String password = scn.nextLine();
@@ -70,15 +73,16 @@ public class UserService {
             User user = SingletonSessionFactory.get()
                     .fromTransaction(session ->
                             session.createNativeQuery("select * from users" +
-                                            " where username = :given_email", User.class)
-                                    .setParameter("given_email", email)
+                                            " where username = :email", User.class)
+                                    .setParameter("email", email)
                                     .getSingleResultOrNull());
             if (user != null) {
                 System.out.println("Error: an account with this email already exists!");
                 return;
+                //TODO: how to make this not end after the error
             }
             persist(firstName, lastName, email, password);
-            System.out.println("Registered successfully!");
+            System.out.println("Your new account is created. \nGo ahead and login!");
         } catch (Exception e) {
             System.out.println("Error during sign up: " + e.getMessage());
         }
