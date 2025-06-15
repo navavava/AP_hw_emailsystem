@@ -2,22 +2,28 @@ package aut.ap;
 
 import aut.ap.framework.SingletonSessionFactory;
 import aut.ap.service.UserService;
+
 import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
         Scanner scn = new Scanner(System.in);
 
-        System.out.println("Email System - (L)ogin or (S)ignup?");
-        String choice = scn.nextLine().trim().toLowerCase();
+        while (true) {
+            System.out.println("Email System - [L]ogin, [S]ignup or Exit?");
+            String choice = scn.nextLine().trim().toLowerCase();
 
-        if (choice.equals("l") || choice.equals("login"))
-            UserService.login(scn);
-        else if (choice.equals("s") || choice.equals("sign up"))
-            UserService.signup(scn);
-        else
-            System.out.println("Invalid command, closing program . . .");
+            if (choice.equals("l") || choice.equals("login"))
+                UserService.login(scn);
+            else if (choice.equals("s") || choice.equals("sign up"))
+                UserService.signup(scn);
+            else if (choice.equals("exit")) {
+                System.out.println("Closing program . . .");
+                System.exit(0);
+            } else
+                System.out.println("Invalid command, try again.");
 
-        SingletonSessionFactory.close();
+            SingletonSessionFactory.close();
+        }
     }
 }
