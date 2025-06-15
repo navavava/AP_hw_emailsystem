@@ -25,8 +25,9 @@ create table if not exists emails
 create table if not exists user_emails
 (
     id       int auto_increment primary key,
-    email_id int         not null,
-    user_id  int         not null,
+    email_id int                   not null,
+    user_id  int                   not null,
+    read_flag boolean default false not null,
     foreign key (email_id) references emails (id),
     foreign key (user_id) references users (id)
 );

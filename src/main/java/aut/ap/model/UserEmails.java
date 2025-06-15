@@ -18,12 +18,16 @@ public class UserEmails {
     @OneToMany
     private User receiver;
 
+    @Column(name = "read_flag", columnDefinition = "boolean default false")
+    private boolean readFlag;
+
     public UserEmails() {
     }
 
     public UserEmails(Email email, User receiver) {
         this.email = email;
         this.receiver = receiver;
+        readFlag = false;
     }
 
     public Integer getId() {
@@ -46,4 +50,11 @@ public class UserEmails {
         this.receiver = receiver;
     }
 
+    public void setReadFlag(boolean readFlag) {
+        this.readFlag = readFlag;
+    }
+
+    public boolean getReadFlag(boolean readFlag) {
+        return readFlag;
+    }
 }

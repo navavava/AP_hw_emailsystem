@@ -36,18 +36,18 @@ public class Email {
     public Email() {
     }
 
-    public Email(User sender, String code, String subject, String body, LocalDate date) {
+    public Email(User sender, String code, String subject, String body, LocalDate date, Email parentEmail) {
         this.sender = sender;
         this.code = code;
         this.subject = subject;
         this.body = body;
         this.date = date;
+        this.parentEmail = parentEmail;
     }
 
     @Override
     public String toString() {
-        return "Email code: " + code +
-                "From: " + sender.getEmail() +
+        return "From: " + sender.getEmail() +
                 "Date: " + date +
                 "\nSubject: " + subject +
                 "\n\n" + body;
@@ -96,5 +96,13 @@ public class Email {
 
     public void setSender(User sender) {
         this.sender = sender;
+    }
+
+    public Email getParentEmail() {
+        return parentEmail;
+    }
+
+    public void setParentEmail(Email parentEmail) {
+        this.parentEmail = parentEmail;
     }
 }

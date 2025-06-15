@@ -10,12 +10,20 @@ import java.util.Scanner;
 
 public class UserService {
 
+    public static User findByUsername(String username) {
+        return SingletonSessionFactory.get()
+                .fromTransaction(session -> session.createNativeQuery(
+                                "select * from users" +
+                                        " where username = :username", User.class
+                        )
+                        .setParameter("username", username)
+                        .getSingleResultOrNull());
+    }
+
     public static User persist(String firstName, String lastName, String email, String password) {
         User u = new User(firstName, lastName, email, password);
         SingletonSessionFactory.get()
-                .inTransaction(session -> {
-                    session.persist(u);
-                });
+                .inTransaction(session -> session.persist(u));
         return u;
     }
 
