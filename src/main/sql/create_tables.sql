@@ -31,3 +31,9 @@ create table if not exists user_emails
     foreign key (email_id) references emails (id),
     foreign key (user_id) references users (id)
 );
+select * from user_emails
+where read_flag = true;
+
+update user_emails
+set read_flag = true
+where email_id = 6 and user_id = 5;

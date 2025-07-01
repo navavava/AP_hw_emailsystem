@@ -19,11 +19,10 @@ public class Main {
                 UserService.signup(scn);
             else if (choice.equals("exit")) {
                 System.out.println("Closing program . . .");
+                SingletonSessionFactory.close();
                 System.exit(0);
             } else
                 System.out.println("Invalid command, try again.");
-
-            SingletonSessionFactory.close();
         }
     }
 }

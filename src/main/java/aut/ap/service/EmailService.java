@@ -1,9 +1,9 @@
 package aut.ap.service;
 
+import aut.ap.Validators.EmailValidator;
 import aut.ap.framework.*;
 import aut.ap.model.*;
 
-import java.time.LocalDateTime;
 import java.util.Random;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -30,19 +30,22 @@ public class EmailService {
                                 "update user_emails" +
                                         " set read_flag = true" +
                                         " where email_id = :emailId and user_id = :userId")
-                        .setParameter("email_id", emailId)
-                        .setParameter("user_id", userId));
+                        .setParameter("emailId", emailId)
+                        .setParameter("userId", userId));
     }
 
-    public static void shortview(Email email) throws Exception {
-        if (email == null) {
-            throw new Exception("Email not found!");
+    public static void shortview(Email email) {
+        try {
+            EmailValidator.validate(email);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
         }
         System.out.println("+ " + email.getSender().getEmail() + " - " + email.getSubject() + " (" + email.getCode() + ")");
     }
 
     //check if user is part of email
     public static boolean checkUserAccess(User user, String emailCode) {
+        Email e = findEmailByCode(emailCode);
         return SingletonSessionFactory.get()
                 .fromTransaction(session -> {
                     Boolean isSender = session.createNativeQuery(
@@ -57,10 +60,9 @@ public class EmailService {
                                     "select count(*) > 0 from user_emails " +
                                             "where email_id = :emailCode and user_id = :userId",
                                     Boolean.class)
-                            .setParameter("emailCode", emailCode)
+                            .setParameter("emailCode", e.getId())
                             .setParameter("userId", user.getId())
                             .getSingleResult();
-
                     return isSender || isReceiver;
                 });
     }
@@ -72,15 +74,34 @@ public class EmailService {
         ArrayList<User> recipients = new ArrayList<>();
         System.out.println("Recipient(s):\n");
         for (int i = 0; i < recNum; i++) {
-            //TODO: error handling
-            recipients.add(UserService.findByUsername(standardizeUsername(scn.nextLine())));
+            try {
+                recipients.add(UserService.findByUsername(standardizeUsername(scn.nextLine())));
+            } catch (Exception e) {
+                System.out.println(e.getMessage() + " Try again.");
+                i--;
+            }
         }
         System.out.println("Subject: ");
         String subject = scn.nextLine();
-        System.out.println("Body: (press ctrl + D to finish)");
-        scn.useDelimiter("\\Z");
-        String body = scn.next();
+        System.out.println("Body: (type \"EOF\" to finish)");
+        String body = "";
+        while (scn.hasNextLine()) {
+            String next = scn.nextLine();
+            if (next.equals("EOF")) break;
+            body += next;
+        }
+//        scn.useDelimiter("\\Z");
+//        String body = "";
+//        if (scn.hasNext())
+//            body = body + scn.next();
+//        scn.close();
+//        Scanner scn = new Scanner(System.in);
         String code = generateUniqueCode();
+        try {
+            EmailValidator.validate(new Email(sender, code, subject, body, LocalDate.now(), null));
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
         persist(sender, code, subject, body, LocalDate.now(), null, recipients);
     }
 
@@ -92,18 +113,22 @@ public class EmailService {
             System.out.println("Error: You cant read this email.");
             return;
         }
-        System.out.println("Body: (press ctrl + D to finish)");
-        scn.useDelimiter("\\Z");
-        String body = scn.next();
+        System.out.println("Body: (type \"EOF\" in the last line to finish)");
+        String body = "";
+        while (scn.hasNextLine()) {
+            String next = scn.nextLine();
+            if (next.equals("EOF")) break;
+            body += next;
+        }
         String childCode = generateUniqueCode();
         Email parent = findEmailByCode(parentCode);
         List<User> recipients = SingletonSessionFactory.get()
                 .fromTransaction(session -> session.createNativeQuery(
-                                "select * from users as u" +
-                                        " join user_emails ue on ue.user_id = " +
-                                        " where code = :code",
+                                "select u.id, u.first_name, u.last_name, u.username, u.password from users as u" +
+                                        " join user_emails ue on ue.user_id = u.id" +
+                                        " where email_id = :emailId",
                                 User.class)
-                        .setParameter("code", parentCode)
+                        .setParameter("emailId", parent.getId())
                         .getResultList());
         setFlagAsRead(parent.getId(), user.getId());
         persist(user, childCode, "[Re] " + parent.getSubject(), body, LocalDate.now(), parent, recipients);
@@ -123,8 +148,12 @@ public class EmailService {
         ArrayList<User> recipients = new ArrayList<>();
         System.out.println("Recipient(s):\n");
         for (int i = 0; i < recNum; i++) {
-            //TODO: error handling
-            recipients.add(UserService.findByUsername(standardizeUsername(scn.nextLine())));
+            try {
+                recipients.add(UserService.findByUsername(standardizeUsername(scn.nextLine())));
+            } catch (Exception e) {
+                System.out.println(e.getMessage() + " Try again.");
+                i--;
+            }
         }
         String childCode = generateUniqueCode();
         Email parent = findEmailByCode(parentCode);
@@ -133,26 +162,26 @@ public class EmailService {
         persist(user, childCode, "[Fw] " + parent.getSubject(), parent.getBody(), LocalDate.now(), parent, recipients);
     }
 
-    public static void view(Scanner scn, User user) {
-        System.out.println("[A]ll emails, [U]nread emails, [S]ent emails, Read by [C]ode, View [R]eplies by code: \n");
-        String command = scn.nextLine();
+    public static void view(User user, Scanner scn) {
+        System.out.println("\n---List of commands---\n[A]ll emails, [U]nread emails, [S]ent emails, Read by [C]ode, View [R]eplies by code: ");
+        String command = scn.nextLine().trim().toLowerCase();
         switch (command) {
-            case "All emails":
+            case "a":
                 viewAll(user);
                 break;
-            case "Unread emails":
+            case "u":
                 viewUnreadEmails(user);
                 break;
-            case "Sent emails":
+            case "s":
                 viewSentEmails(user);
                 break;
-            case "Read by Code":
-                System.out.println("Code:\n");
+            case "c":
+                System.out.println("Code:");
                 String readCode = scn.nextLine();
                 readByCode(user, readCode);
                 break;
-            case "View Replies by Code":
-                System.out.println("Code:\n");
+            case "r":
+                System.out.println("Code:");
                 String replyCode = scn.nextLine();
                 Email e = findEmailByCode(replyCode);
                 viewReplies(e);
@@ -164,48 +193,45 @@ public class EmailService {
     }
 
     public static void viewAll(User user) {
-        List<Email> unreadEmails = SingletonSessionFactory.get()
+        List<Email> AllEmails = SingletonSessionFactory.get()
                 .fromTransaction(session -> session.createNativeQuery(
-                                "select * from emails as e" +
-                                        "join user_emails as ue on ue.email_id = e.id" +
-                                        "where ue.user_id = :userId or (e.id = :userId )",
+                                "select e.id, e.user_id, e.code, e.subject, e.body, e.parent_id, e.date from emails as e" +
+                                        " join user_emails as ue on ue.email_id = e.id" +
+                                        " where ue.user_id = :userId or (e.id = :userId )",
                                 Email.class)
                         .setParameter("userId", user.getId())
                         .getResultList());
-        System.out.println("Unread Emails:\n\n" + unreadEmails.size() + " unread emails:\n");
-        for (Email e : unreadEmails) {
-            try {
+        if (!AllEmails.isEmpty()) {
+            System.out.println("All Emails:\n\n" + AllEmails.size() + " emails:\n");
+            for (Email e : AllEmails) {
                 shortview(e);
-            } catch (Exception ex) {
-                System.out.println(ex.getMessage());
             }
-        }
+        } else
+            System.out.println("You currently have no emails.");
     }
 
     public static void viewUnreadEmails(User user) {
-        List<Email> emails = SingletonSessionFactory.get()
+        List<Email> unreadEmails = SingletonSessionFactory.get()
                 .fromTransaction(session -> session.createNativeQuery(
-                                "select * from emails as e" +
-                                        "join user_emails as ue on ue.email_id = e.id" +
-                                        "where read_flag = false and user_id = :userId",
+                                "select e.id, e.user_id, e.code, e.subject, e.body, e.parent_id, e.date from emails as e" + //probably something wrong with this too bc of join
+                                        " join user_emails as ue on ue.email_id = e.id" +
+                                        " where read_flag = false and ue.user_id = :userId",
                                 Email.class)
                         .setParameter("userId", user.getId())
                         .getResultList());
-        System.out.println("ALL Emails:\n\n" + emails.size() + " emails:\n");
-        for (Email e : emails) {
-            try {
+        if (!unreadEmails.isEmpty()) {
+            System.out.println("Unread Emails:\n\n" + unreadEmails.size() + " unread emails:\n");
+            for (Email e : unreadEmails)
                 shortview(e);
-            } catch (Exception ex) {
-                System.out.println(ex.getMessage());
-            }
-        }
+        } else
+            System.out.println("No unread emails.");
     }
 
     public static void viewSentEmails(User user) {
         List<Email> sentEmails = SingletonSessionFactory.get()
                 .fromTransaction(session -> session.createNativeQuery(
-                                "select * from emails " +
-                                        "where user_id = :userId",
+                                "select * from emails" +
+                                        " where user_id = :userId",
                                 Email.class)
                         .setParameter("userId", user.getId())
                         .getResultList());
@@ -223,19 +249,18 @@ public class EmailService {
     public static void viewReplies(Email email) {
         List<Email> replies = SingletonSessionFactory.get()
                 .fromTransaction(session -> session.createNativeQuery(
-                                "select * from emails " +
-                                        "where parent_id = :parentId",
+                                "select * from emails" +
+                                        " where parent_id = :parentId",
                                 Email.class)
-                        .setParameter("parent_id", email.getId())
+                        .setParameter("parentId", email.getId())
                         .getResultList());
-        System.out.println("Replies:\n" + replies.size() + " replies for this email:\n");
-        for (Email e : replies) {
-            try {
+        if (!replies.isEmpty()) {
+            System.out.println("Replies:\n" + replies.size() + " replies for this email:\n");
+            for (Email e : replies) {
                 shortview(e);
-            } catch (Exception ex) {
-                System.out.println(ex.getMessage());
             }
-        }
+        } else
+            System.out.println("No replies for this email.");
     }
 
     // add user interaction
@@ -257,7 +282,7 @@ public class EmailService {
     public static Email findEmailByCode(String code) {
         return SingletonSessionFactory.get()
                 .fromTransaction(session -> session.createNativeQuery(
-                                "select emails " +
+                                "select * from emails " +
                                         "where code = :code",
                                 Email.class)
                         .setParameter("code", code)
@@ -272,13 +297,10 @@ public class EmailService {
                 .inTransaction(session -> {
                     session.persist(e);
                     for (User receiver : recipients) {
-                        UserEmails userEmail = new UserEmails();
-                        userEmail.setEmail(e);
-                        userEmail.setReceiver(receiver);
-                        session.persist(userEmail);
+                        UserEmails recipient = new UserEmails(e, receiver);
+                        session.persist(recipient);
                     }
                 });
-
         return e;
     }
 

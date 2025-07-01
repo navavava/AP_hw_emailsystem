@@ -43,6 +43,7 @@ public class Email {
         this.body = body;
         this.date = date;
         this.parentEmail = parentEmail;
+
     }
 
     @Override

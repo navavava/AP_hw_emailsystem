@@ -6,18 +6,22 @@ import jakarta.transaction.Transaction;
 import org.hibernate.Session;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Scanner;
 
 public class UserService {
 
-    public static User findByUsername(String username) {
-        return SingletonSessionFactory.get()
+    public static User findByUsername(String username) throws Exception {
+        User result = SingletonSessionFactory.get()
                 .fromTransaction(session -> session.createNativeQuery(
                                 "select * from users" +
                                         " where username = :username", User.class
                         )
                         .setParameter("username", username)
                         .getSingleResultOrNull());
+        if (result == null)
+            throw new Exception("Error: This user doesn't exist.");
+        return result;
     }
 
     public static User persist(String firstName, String lastName, String email, String password) {
@@ -30,28 +34,48 @@ public class UserService {
     public static void login(Scanner scn) {
         System.out.println("\n--- Login ---");
         System.out.print("Email: ");
-        String email = scn.nextLine();
-        EmailService.standardizeUsername(email);
+        String email = EmailService.standardizeUsername(scn.nextLine());
 
         System.out.print("Password: ");
         String password = scn.nextLine();
 
-        try {
-            User user = SingletonSessionFactory.get()
-                    .fromTransaction(session ->
-                            session.createNativeQuery("select * from users" +
-                                            " where username = :email", User.class)
-                                    .setParameter("email", email)
-                                    .getSingleResultOrNull());
+        User user = SingletonSessionFactory.get()
+                .fromTransaction(session ->
+                        session.createNativeQuery("select * from users" +
+                                        " where username = :email", User.class)
+                                .setParameter("email", email)
+                                .getSingleResultOrNull());
 
-            if (user == null || !user.getPassword().equals(password)) {
-                System.out.println("Error: Invalid credentials! Try again please.");
-            } else {
-                System.out.println("\nWelcome back, " + user.getFirstName() + " " + user.getLastName() + "!");
-                //TODO:view unread emails method and send,view,reply,forward
+        if (user == null || !user.getPassword().equals(password)) {
+            System.out.println("Error: Invalid credentials! Try again please.");
+        } else {
+            System.out.println("\nWelcome back, " + user.getFirstName() + " " + user.getLastName() + "!");
+            boolean whileCon = true;
+
+            while (whileCon) {
+                System.out.println("\n---List of commands---\n[V]iew, [S]end, [R]eply, [F]orward, Go [B]ack.");
+                String command = scn.nextLine().trim().toLowerCase();
+
+                switch (command) {
+                    case "v":
+                        EmailService.view(user, scn);
+                        break;
+                    case "s":
+                        EmailService.send(user, scn);
+                        break;
+                    case "r":
+                        EmailService.reply(user, scn);
+                        break;
+                    case "f":
+                        EmailService.forward(user, scn);
+                        break;
+                    case "b":
+                        whileCon = false;
+                        break;
+                    default:
+                        System.out.println("Invalid command, try again.");
+                }
             }
-        } catch (Exception e) {
-            System.out.println("Error during login: " + e.getMessage());
         }
     }
 
@@ -65,8 +89,7 @@ public class UserService {
         String lastName = fullName.split(" ")[1];
 
         System.out.print("Email: ");
-        String email = scn.nextLine();
-        EmailService.standardizeUsername(email);
+        String email = EmailService.standardizeUsername(scn.nextLine());
 
         System.out.print("Password: ");
         String password = scn.nextLine();
@@ -76,23 +99,23 @@ public class UserService {
             System.out.println("Password: ");
             password = scn.nextLine();
         }
-
+        User user = null;
         try {
-            User user = SingletonSessionFactory.get()
-                    .fromTransaction(session ->
-                            session.createNativeQuery("select * from users" +
-                                            " where username = :email", User.class)
-                                    .setParameter("email", email)
-                                    .getSingleResultOrNull());
-            if (user != null) {
-                System.out.println("Error: an account with this email already exists!");
-                return;
-                //TODO: how to make this not end after the error
-            }
+            user = findByUsername(email);
+        } catch (Exception _) {
+        }
+//        User user = SingletonSessionFactory.get()
+//                .fromTransaction(session ->
+//                        session.createNativeQuery("select * from users" +
+//                                        " where username = :email", User.class)
+//                                .setParameter("email", email)
+//                                .getSingleResultOrNull());
+        if (user != null) {
+            System.out.println("Error: an account with this email already exists!");
+            return;
+        } else {
             persist(firstName, lastName, email, password);
             System.out.println("Your new account is created. \nGo ahead and login!");
-        } catch (Exception e) {
-            System.out.println("Error during sign up: " + e.getMessage());
         }
     }
 }

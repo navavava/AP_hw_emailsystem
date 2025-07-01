@@ -11,11 +11,11 @@ public class UserEmails {
     private Integer id;
 
     @JoinColumn(name = "email_id")
-    @OneToMany
+    @ManyToOne
     private Email email;
 
     @JoinColumn(name = "user_id")
-    @OneToMany
+    @ManyToOne
     private User receiver;
 
     @Column(name = "read_flag", columnDefinition = "boolean default false")
