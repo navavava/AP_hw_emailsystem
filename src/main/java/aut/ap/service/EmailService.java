@@ -23,7 +23,6 @@ public class EmailService {
         return code.toString();
     }
 
-    //change readFlag
     public static void setFlagAsRead(int emailId, int userId) {
         SingletonSessionFactory.get()
                 .inTransaction(session -> session.createNativeQuery(
@@ -90,12 +89,6 @@ public class EmailService {
             if (next.equals("EOF")) break;
             body += next;
         }
-//        scn.useDelimiter("\\Z");
-//        String body = "";
-//        if (scn.hasNext())
-//            body = body + scn.next();
-//        scn.close();
-//        Scanner scn = new Scanner(System.in);
         String code = generateUniqueCode();
         try {
             EmailValidator.validate(new Email(sender, code, subject, body, LocalDate.now(), null));
@@ -245,7 +238,6 @@ public class EmailService {
         }
     }
 
-    // add user interaction
     public static void viewReplies(Email email) {
         List<Email> replies = SingletonSessionFactory.get()
                 .fromTransaction(session -> session.createNativeQuery(
@@ -263,7 +255,6 @@ public class EmailService {
             System.out.println("No replies for this email.");
     }
 
-    // add user interaction
     public static void readByCode(User user, String code) {
         boolean access = checkUserAccess(user, code);
         if (!access) {
@@ -289,7 +280,6 @@ public class EmailService {
                         .getSingleResultOrNull());
     }
 
-    //persist
     public static Email persist(User sender, String code, String subject, String body, LocalDate date, Email
             parentEmail, List<User> recipients) {
         Email e = new Email(sender, code, subject, body, date, parentEmail);
@@ -304,7 +294,6 @@ public class EmailService {
         return e;
     }
 
-    //standardize username
     public static String standardizeUsername(String email) {
         if (!email.endsWith("@milou.com"))
             email = email + "@milou.com";
