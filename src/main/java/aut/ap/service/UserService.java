@@ -85,8 +85,12 @@ public class UserService {
         System.out.print("Full name: ");
         String fullName = scn.nextLine();
 
-        String firstName = fullName.split(" ")[0];
-        String lastName = fullName.split(" ")[1];
+        try {
+            String firstName = fullName.split(" ")[0];
+            String lastName = fullName.split(" ")[1];
+        } catch (Exception e) {
+            System.out.println("Error! Invalid name format. Separate your first and last name with a space.");
+        }
 
         System.out.print("Email: ");
         String email = EmailService.standardizeUsername(scn.nextLine());
