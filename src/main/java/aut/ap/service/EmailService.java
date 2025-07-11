@@ -119,11 +119,13 @@ public class EmailService {
                 .fromTransaction(session -> session.createNativeQuery(
                                 "select u.id, u.first_name, u.last_name, u.username, u.password from users as u" +
                                         " join user_emails ue on ue.user_id = u.id" +
-                                        " where email_id = :emailId",
+                                        " where email_id = :emailId and u.id != :userId",
                                 User.class)
                         .setParameter("emailId", parent.getId())
+                        .setParameter("userId" , user.getId())
                         .getResultList());
         setFlagAsRead(parent.getId(), user.getId());
+        recipients.add(parent.getSender());
         persist(user, childCode, "[Re] " + parent.getSubject(), body, LocalDate.now(), parent, recipients);
     }
 
@@ -178,6 +180,7 @@ public class EmailService {
                 String replyCode = scn.nextLine();
                 Email e = findEmailByCode(replyCode);
                 viewReplies(e);
+                break;
             default:
                 System.out.println("Error: Invalid command!");
                 break;
