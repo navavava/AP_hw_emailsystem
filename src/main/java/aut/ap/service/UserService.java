@@ -91,6 +91,7 @@ public class UserService {
             lastName = fullName.split(" ")[1];
         } catch (Exception e) {
             System.out.println("Error! Invalid name format. Separate your first and last name with a space.");
+            return;
         }
 
         System.out.print("Email: ");
@@ -109,12 +110,6 @@ public class UserService {
             user = findByUsername(email);
         } catch (Exception _) {
         }
-//        User user = SingletonSessionFactory.get()
-//                .fromTransaction(session ->
-//                        session.createNativeQuery("select * from users" +
-//                                        " where username = :email", User.class)
-//                                .setParameter("email", email)
-//                                .getSingleResultOrNull());
         if (user != null) {
             System.out.println("Error: an account with this email already exists!");
             return;
