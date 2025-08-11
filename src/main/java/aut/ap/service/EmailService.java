@@ -30,7 +30,8 @@ public class EmailService {
                                         " set read_flag = true" +
                                         " where email_id = :emailId and user_id = :userId")
                         .setParameter("emailId", emailId)
-                        .setParameter("userId", userId));
+                        .setParameter("userId", userId)
+                        .executeUpdate());
     }
 
     public static void shortview(Email email) {
@@ -122,7 +123,7 @@ public class EmailService {
                                         " where email_id = :emailId and u.id != :userId",
                                 User.class)
                         .setParameter("emailId", parent.getId())
-                        .setParameter("userId" , user.getId())
+                        .setParameter("userId", user.getId())
                         .getResultList());
         setFlagAsRead(parent.getId(), user.getId());
         recipients.add(parent.getSender());
@@ -178,8 +179,11 @@ public class EmailService {
             case "r":
                 System.out.println("Code:");
                 String replyCode = scn.nextLine();
-                Email e = findEmailByCode(replyCode);
-                viewReplies(e);
+                if (checkUserAccess(user, replyCode)) {
+                    Email e = findEmailByCode(replyCode);
+                    viewReplies(e);
+                } else
+                    System.out.println("Error: You cant read this email.");
                 break;
             default:
                 System.out.println("Error: Invalid command!");
@@ -193,7 +197,7 @@ public class EmailService {
                 .fromTransaction(session -> session.createNativeQuery(
                                 "select e.id, e.user_id, e.code, e.subject, e.body, e.parent_id, e.date from emails as e" +
                                         " join user_emails as ue on ue.email_id = e.id" +
-                                        " where ue.user_id = :userId or (e.id = :userId )",
+                                        " where ue.user_id = :userId or e.user_id = :userId ",
                                 Email.class)
                         .setParameter("userId", user.getId())
                         .getResultList());

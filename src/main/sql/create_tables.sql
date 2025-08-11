@@ -36,4 +36,5 @@ select * from users;
 
 select e.id, e.user_id, e.code, e.subject, e.body, e.parent_id, e.date from emails as e
  join user_emails as ue on ue.email_id = e.id
- where read_flag = false and ue.user_id = 4;
+ where ue.user_id = 5;
+

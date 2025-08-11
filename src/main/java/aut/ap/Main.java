@@ -26,6 +26,6 @@ public class Main {
         }
     }
 }
-//problem with view unread method
+
 // when i reply to an email that email appears in my unread folder
-// invlaid command error after read replies by code command
+// shows replies by code for users with no access
