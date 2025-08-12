@@ -99,8 +99,8 @@ public class EmailService {
                 bodyBuilder.append("\n").append(line);
             }
         }
-
         String body = bodyBuilder.toString();
+
         String code = generateUniqueCode();
         try {
             EmailValidator.validate(new Email(sender, code, subject, body, LocalDate.now(), null));
@@ -134,6 +134,8 @@ public class EmailService {
                 bodyBuilder.append("\n").append(line);
             }
         }
+        String body = bodyBuilder.toString();
+
         String childCode = generateUniqueCode();
         Email parent = findEmailByCode(parentCode);
         List<User> recipients = SingletonSessionFactory.get()
