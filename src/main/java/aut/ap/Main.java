@@ -26,6 +26,3 @@ public class Main {
         }
     }
 }
-
-// when i reply to an email that email appears in my unread folder
-// shows replies by code for users with no access

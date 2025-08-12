@@ -32,9 +32,3 @@ create table if not exists user_emails
     foreign key (user_id) references users (id)
 );
 
-select * from users;
-
-select e.id, e.user_id, e.code, e.subject, e.body, e.parent_id, e.date from emails as e
- join user_emails as ue on ue.email_id = e.id
- where ue.user_id = 5;
-

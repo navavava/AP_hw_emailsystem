@@ -84,12 +84,23 @@ public class EmailService {
         System.out.println("Subject: ");
         String subject = scn.nextLine();
         System.out.println("Body: (type \"EOF\" to finish)");
-        String body = "";
+        StringBuilder bodyBuilder = new StringBuilder();
+        boolean isFirstLine = true;
+
         while (scn.hasNextLine()) {
-            String next = scn.nextLine();
-            if (next.equals("EOF")) break;
-            body += next;
+            String line = scn.nextLine();
+            if (line.equals("EOF")) {
+                break;
+            }
+            if (isFirstLine) {
+                bodyBuilder.append(line);
+                isFirstLine = false;
+            } else {
+                bodyBuilder.append("\n").append(line);
+            }
         }
+
+        String body = bodyBuilder.toString();
         String code = generateUniqueCode();
         try {
             EmailValidator.validate(new Email(sender, code, subject, body, LocalDate.now(), null));
@@ -107,12 +118,21 @@ public class EmailService {
             System.out.println("Error: You cant read this email.");
             return;
         }
-        System.out.println("Body: (type \"EOF\" in the last line to finish)");
-        String body = "";
+        System.out.println("Body: (type \"EOF\" to finish)");
+        StringBuilder bodyBuilder = new StringBuilder();
+        boolean isFirstLine = true;
+
         while (scn.hasNextLine()) {
-            String next = scn.nextLine();
-            if (next.equals("EOF")) break;
-            body += next;
+            String line = scn.nextLine();
+            if (line.equals("EOF")) {
+                break;
+            }
+            if (isFirstLine) {
+                bodyBuilder.append(line);
+                isFirstLine = false;
+            } else {
+                bodyBuilder.append("\n").append(line);
+            }
         }
         String childCode = generateUniqueCode();
         Email parent = findEmailByCode(parentCode);

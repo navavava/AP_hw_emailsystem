@@ -49,7 +49,7 @@ public class Email {
     @Override
     public String toString() {
         return "From: " + sender.getEmail() +
-                "Date: " + date +
+                "\nDate: " + date +
                 "\nSubject: " + subject +
                 "\n\n" + body;
     }
